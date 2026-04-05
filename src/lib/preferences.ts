@@ -9,7 +9,7 @@ export const STORAGE_KEYS = {
 export type AppTheme = 'dark' | 'light';
 
 export const FONT_SCALE = {
-  min: 0.9,
+  min: 0.7,
   max: 1.35,
   step: 0.1,
   default: 1,

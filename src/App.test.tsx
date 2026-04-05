@@ -156,6 +156,21 @@ describe("App", () => {
     );
   });
 
+  it("permite reduzir mais a fonte pela toolbar", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const decreaseButton = screen.getByRole("button", { name: "A-" });
+
+    await user.click(decreaseButton);
+    await user.click(decreaseButton);
+    await user.click(decreaseButton);
+
+    expect(window.localStorage.getItem("organizar-markdown:font-scale")).toBe(
+      "0.7",
+    );
+  });
+
   it("alterna o botao de scroll sync na toolbar", async () => {
     const user = userEvent.setup();
     render(<App />);

@@ -79,7 +79,7 @@ export function CombinedOutputPanel({
                 id={`preview-item-${item.id}`}
                 data-preview-item-id={item.id}
                 className={`scroll-mt-6 ${
-                  index > 0 ? "mt-10 border-t border-slate-700/20 pt-10" : ""
+                  index > 0 ? "preview-item-divider mt-12 pt-12" : ""
                 } ${item.id === activeItemId ? "preview-item-active" : ""}`}
               >
                 <div className="mb-4 flex items-center gap-3">
