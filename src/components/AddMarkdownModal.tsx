@@ -7,9 +7,10 @@ interface AddMarkdownModalProps {
   isSaving?: boolean;
   mode?: "create" | "edit";
   initialValue?: string;
+  initialTitle?: string;
   theme?: AppTheme;
   onClose: () => void;
-  onSave: (content: string) => Promise<void>;
+  onSave: (content: string, title?: string) => Promise<void>;
 }
 
 export function AddMarkdownModal({
@@ -17,24 +18,28 @@ export function AddMarkdownModal({
   isSaving = false,
   mode = "create",
   initialValue = "",
+  initialTitle = "",
   theme = "dark",
   onClose,
   onSave,
 }: AddMarkdownModalProps) {
   const isDark = theme === "dark";
   const [value, setValue] = useState("");
+  const [title, setTitle] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!open) {
       setValue("");
+      setTitle("");
       setError("");
       return;
     }
 
     setValue(initialValue);
+    setTitle(initialTitle);
     setError("");
-  }, [initialValue, open]);
+  }, [initialValue, initialTitle, open]);
 
   useEffect(() => {
     if (!open) {
@@ -70,7 +75,7 @@ export function AddMarkdownModal({
       return;
     }
 
-    await onSave(value);
+    await onSave(value, title.trim() || undefined);
     onClose();
   };
 
@@ -123,6 +128,30 @@ export function AddMarkdownModal({
               Fechar
             </button>
           </div>
+
+          <label
+            className={`flex flex-col gap-1.5 text-sm font-medium ${
+              isDark ? "text-slate-300" : "text-slate-700"
+            }`}
+          >
+            Titulo do card
+            <span
+              className={`text-xs font-normal ${isDark ? "text-slate-500" : "text-slate-400"}`}
+            >
+              Opcional — se vazio, usa a primeira linha do markdown
+            </span>
+            <input
+              type="text"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Ex: Criacao de Pedido"
+              className={`rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200/40 ${
+                isDark
+                  ? "border-slate-700 bg-[#0b1118] text-slate-200 placeholder:text-slate-600"
+                  : "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400"
+              }`}
+            />
+          </label>
 
           <label
             className={`flex flex-col gap-2 text-sm font-medium ${

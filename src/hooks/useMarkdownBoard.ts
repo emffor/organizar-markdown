@@ -7,8 +7,8 @@ export interface UseMarkdownBoardResult {
   items: MarkdownItem[];
   combinedContent: string;
   isLoading: boolean;
-  addItem: (content: string) => Promise<void>;
-  updateItem: (itemId: string, content: string) => Promise<void>;
+  addItem: (content: string, title?: string) => Promise<void>;
+  updateItem: (itemId: string, content: string, title?: string) => Promise<void>;
   deleteItem: (itemId: string) => Promise<void>;
   reorderItems: (activeId: string, overId: string) => Promise<void>;
   clearItems: () => Promise<void>;
@@ -46,14 +46,16 @@ export function useMarkdownBoard(): UseMarkdownBoardResult {
 
   const combinedContent = useMemo(() => buildCombinedContent(items), [items]);
 
-  const addItem = async (content: string) => {
+  const addItem = async (content: string, title?: string) => {
     if (isContentBlank(content)) {
       return;
     }
 
+    const cleanTitle = title?.trim() || undefined;
     const timestamp = new Date().toISOString();
     const nextItem: MarkdownItem = {
       id: crypto.randomUUID(),
+      title: cleanTitle,
       content,
       order: items.length,
       createdAt: timestamp,
@@ -64,7 +66,7 @@ export function useMarkdownBoard(): UseMarkdownBoardResult {
     await db.items.put(nextItem);
   };
 
-  const updateItem = async (itemId: string, content: string) => {
+  const updateItem = async (itemId: string, content: string, title?: string) => {
     if (isContentBlank(content)) {
       return;
     }
@@ -74,9 +76,11 @@ export function useMarkdownBoard(): UseMarkdownBoardResult {
       return;
     }
 
+    const cleanTitle = title?.trim() || undefined;
     const timestamp = new Date().toISOString();
     const updatedItem: MarkdownItem = {
       ...currentItem,
+      title: cleanTitle,
       content,
       updatedAt: timestamp,
     };

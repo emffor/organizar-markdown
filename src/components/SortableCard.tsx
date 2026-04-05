@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { getCardTitle } from "../lib/items";
+import { getDisplayTitle } from "../lib/items";
 import type { MarkdownItem } from "../types/markdown";
 
 interface SortableCardProps {
@@ -65,8 +65,8 @@ export function SortableCard({
             <button
               type="button"
               onClick={() => onSelect(item)}
-              title={getCardTitle(item.content, 56)}
-              aria-label={`Ir para ${getCardTitle(item.content, 56)}`}
+              title={getDisplayTitle(item, 56)}
+              aria-label={`Ir para ${getDisplayTitle(item, 56)}`}
               className={`flex h-10 w-full cursor-grab items-center justify-center rounded-lg text-xs font-bold tracking-wide active:cursor-grabbing ${
                 isActive
                   ? "bg-teal-500/15 text-teal-300"
@@ -83,18 +83,18 @@ export function SortableCard({
             <button
               type="button"
               onClick={() => onSelect(item)}
-              title={getCardTitle(item.content, 56)}
+              title={getDisplayTitle(item, 56)}
               className="min-w-0 flex-1 cursor-grab truncate text-left text-[1.15rem] font-semibold leading-6 tracking-[-0.02em] text-slate-950 active:cursor-grabbing"
               {...attributes}
               {...listeners}
             >
-              {getCardTitle(item.content, 56)}
+              {getDisplayTitle(item, 56)}
             </button>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => onEdit(item)}
-                aria-label={`Editar ${getCardTitle(item.content, 56)}`}
+                aria-label={`Editar ${getDisplayTitle(item, 56)}`}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
               >
                 <span aria-hidden="true">✎</span>
@@ -102,7 +102,7 @@ export function SortableCard({
               <button
                 type="button"
                 onClick={() => onDelete(item)}
-                aria-label={`Remover ${getCardTitle(item.content, 56)}`}
+                aria-label={`Remover ${getDisplayTitle(item, 56)}`}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-rose-400 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
               >
                 <span aria-hidden="true">✕</span>

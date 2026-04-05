@@ -7,7 +7,7 @@ import { ToastContainer } from "./components/Toast";
 import { useMarkdownBoard } from "./hooks/useMarkdownBoard";
 import { useToast } from "./hooks/useToast";
 import { createBackupText, parseBackupText } from "./lib/backup";
-import { buildCombinedContent } from "./lib/items";
+import { buildCombinedContent, getDisplayTitle } from "./lib/items";
 import {
   type AppTheme,
   clampFontScale,
@@ -86,15 +86,15 @@ export default function App() {
     }
   }, [activeItemId, items]);
 
-  const handleSave = async (content: string) => {
+  const handleSave = async (content: string, title?: string) => {
     setIsSaving(true);
 
     try {
       if (editingItem) {
-        await updateItem(editingItem.id, content);
+        await updateItem(editingItem.id, content, title);
         addToast("Card atualizado com sucesso");
       } else {
-        await addItem(content);
+        await addItem(content, title);
         addToast("Novo card adicionado");
       }
     } finally {
@@ -153,11 +153,7 @@ export default function App() {
   };
 
   const handleDeleteItem = async (item: MarkdownItem) => {
-    if (
-      !window.confirm(
-        `Remover card "${item.content.split("\n")[0]?.slice(0, 40)}..."?`,
-      )
-    ) {
+    if (!window.confirm(`Remover card "${getDisplayTitle(item, 40)}"?`)) {
       return;
     }
     await deleteItem(item.id);
@@ -265,6 +261,7 @@ export default function App() {
         isSaving={isSaving}
         mode={editingItem ? "edit" : "create"}
         initialValue={editingItem?.content ?? ""}
+        initialTitle={editingItem?.title ?? ""}
         theme={theme}
         onClose={() => {
           if (!isSaving) {

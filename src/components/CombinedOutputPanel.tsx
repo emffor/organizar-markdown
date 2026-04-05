@@ -1,4 +1,4 @@
-import { getCardTitle } from "../lib/items";
+import { getDisplayTitle } from "../lib/items";
 import type { MarkdownItem } from "../types/markdown";
 import type { AppTheme } from "../lib/preferences";
 import ReactMarkdown from "react-markdown";
@@ -87,7 +87,7 @@ export function CombinedOutputPanel({
                   <p
                     className={`m-0 text-xs font-medium uppercase tracking-[0.22em] ${theme === "dark" ? "text-slate-500" : "text-slate-400"}`}
                   >
-                    {getCardTitle(item.content, 72)}
+                    {getDisplayTitle(item, 72)}
                   </p>
                 </div>
                 <ReactMarkdown

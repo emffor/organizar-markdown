@@ -56,6 +56,14 @@ export function reorderMarkdownItems(
   }));
 }
 
+export function getDisplayTitle(item: Pick<MarkdownItem, 'title' | 'content'>, maxLength = 72): string {
+  if (item.title?.trim()) {
+    const t = item.title.trim();
+    return t.length <= maxLength ? t : `${t.slice(0, maxLength - 3)}...`;
+  }
+  return getCardTitle(item.content, maxLength);
+}
+
 export function isContentBlank(content: string): boolean {
   return content.trim().length === 0;
 }
