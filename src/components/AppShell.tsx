@@ -53,21 +53,21 @@ export function AppShell({
       style={{ ['--font-scale' as string]: String(fontScale) }}
     >
       <header
-        className={`flex flex-col gap-4 border-b border-white/10 bg-ink text-white ${
-          isCompactMode ? 'mb-0 rounded-none px-5 py-4 sm:px-6' : 'mb-4 rounded-[1.5rem] px-6 py-5 sm:px-8'
+        className={`flex flex-col gap-3 border-b border-white/10 bg-ink text-white ${
+          isCompactMode ? 'mb-0 rounded-none px-4 py-3 sm:px-5' : 'mb-3 rounded-[1.25rem] px-5 py-4 sm:px-6'
         }`}
       >
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <div className={`${isPreviewMaximized ? 'max-w-3xl' : 'max-w-4xl'}`}>
-            <p className="mb-2 text-sm font-medium uppercase tracking-[0.26em] text-teal-200/90">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className={`${isPreviewMaximized ? 'max-w-2xl' : 'max-w-3xl'}`}>
+            <p className="mb-1 text-xs font-medium uppercase tracking-[0.28em] text-teal-200/90">
               Organizar Markdown
             </p>
-            <h1 className="m-0 text-3xl font-semibold leading-[1.08] tracking-[-0.03em] text-slate-50 sm:text-4xl lg:text-5xl">
+            <h1 className="m-0 text-[2.2rem] font-semibold leading-[1.02] tracking-[-0.04em] text-slate-50 sm:text-[2.7rem] lg:text-[3.1rem]">
               Cole blocos em markdown, reordene os cards e gere a versao final.
             </h1>
           </div>
 
-          <div className="flex max-w-[42rem] flex-wrap items-center justify-start gap-2 sm:justify-end">
+          <div className="flex max-w-[42rem] flex-wrap items-center justify-start gap-1.5 sm:justify-end">
             <button
               type="button"
               onClick={onTogglePreviewMaximized}
