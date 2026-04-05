@@ -62,7 +62,7 @@ export function SortableCardsPanel({
       className={`flex flex-col lg:min-h-0 ${
         isOutlineMode
           ? "lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]"
-          : "panel-surface min-h-[420px] p-5 sm:p-6"
+          : "panel-surface p-5 sm:p-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]"
       }`}
     >
       {isOutlineMode ? null : (

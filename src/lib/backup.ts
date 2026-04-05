@@ -39,6 +39,7 @@ export function parseBackupText(rawText: string): MarkdownItem[] {
 
     return {
       id: item.id,
+      title: typeof item.title === 'string' && item.title.trim() ? item.title.trim() : undefined,
       content: item.content,
       order: index,
       createdAt: item.createdAt,

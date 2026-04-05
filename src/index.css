@@ -7,13 +7,6 @@
 @layer base {
   :root {
     color: #111827;
-    background:
-      radial-gradient(
-        circle at top left,
-        rgba(15, 118, 110, 0.06),
-        transparent 24%
-      ),
-      linear-gradient(180deg, #f8f6f1 0%, #f5f2ea 100%);
   }
 
   * {
@@ -22,6 +15,11 @@
 
   body {
     @apply m-0 min-h-screen font-sans text-ink antialiased;
+    background: #0a0f16;
+  }
+
+  body[data-theme="light"] {
+    background: #f3efe7;
   }
 
   #root {

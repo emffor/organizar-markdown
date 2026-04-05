@@ -73,6 +73,7 @@ export default function App() {
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.theme, theme);
+    document.body.setAttribute("data-theme", theme);
   }, [theme]);
 
   useEffect(() => {
