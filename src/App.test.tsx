@@ -78,7 +78,7 @@ describe("App", () => {
     );
   });
 
-  it("normaliza caracteres corrompidos no inicio de itens de lista", async () => {
+  it("troca caracteres corrompidos por icone de pin", async () => {
     const user = userEvent.setup();
     render(<App />);
 
@@ -90,6 +90,7 @@ describe("App", () => {
     });
     await user.click(screen.getByRole("button", { name: /salvar card/i }));
 
+    expect(await screen.findByText(/📌/)).toBeInTheDocument();
     expect(
       await screen.findByText(/o imovel selecionado deve pertencer ao cliente/i),
     ).toBeInTheDocument();

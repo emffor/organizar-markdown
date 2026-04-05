@@ -44,7 +44,11 @@ export function SortableCard({
       style={style}
       className={`transition ${
         isOutlineMode
-          ? `rounded-lg ${isActive ? "ring-1 ring-teal-400/60" : ""}`
+          ? `rounded-xl border ${
+              isActive
+                ? "border-teal-400/60 bg-teal-400/10 shadow-[0_0_0_1px_rgba(45,212,191,0.12)]"
+                : "border-slate-800/90 bg-[#111823]"
+            }`
           : `rounded-[1.1rem] border px-4 py-3 ${
               isDragging
                 ? "border-teal-300 bg-teal-50/40"
@@ -67,10 +71,10 @@ export function SortableCard({
               onClick={() => onSelect(item)}
               title={getDisplayTitle(item, 56)}
               aria-label={`Ir para ${getDisplayTitle(item, 56)}`}
-              className={`flex h-10 w-full cursor-grab items-center justify-center rounded-lg px-2 text-[11px] font-bold tracking-wide active:cursor-grabbing ${
+              className={`flex h-12 w-full cursor-grab items-center justify-center rounded-[0.9rem] border px-2 text-[11px] font-bold tracking-[0.18em] transition active:cursor-grabbing ${
                 isActive
-                  ? "bg-teal-500/15 text-teal-300"
-                  : "bg-slate-800/40 text-slate-400 hover:bg-slate-700/50 hover:text-slate-300"
+                  ? "border-teal-300/70 bg-teal-400/12 text-teal-200"
+                  : "border-slate-700/80 bg-slate-900/40 text-slate-400 hover:border-slate-600 hover:bg-slate-800/70 hover:text-slate-200"
               }`}
               {...attributes}
               {...listeners}

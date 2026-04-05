@@ -7,7 +7,7 @@ export function buildCombinedContent(items: Pick<MarkdownItem, 'content'>[]): st
 
 export function normalizeMarkdownContent(content: string): string {
   return content
-    .replace(/^\s*�+\s*/gm, '- ')
+    .replace(/^\s*�+\s*/gm, '📌 ')
     .replace(/\u00a0/g, ' ');
 }
 
