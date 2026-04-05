@@ -67,7 +67,7 @@ export function SortableCard({
               onClick={() => onSelect(item)}
               title={getDisplayTitle(item, 56)}
               aria-label={`Ir para ${getDisplayTitle(item, 56)}`}
-              className={`flex h-10 w-full cursor-grab items-center justify-center rounded-lg text-xs font-bold tracking-wide active:cursor-grabbing ${
+              className={`flex h-10 w-full cursor-grab items-center justify-center rounded-lg px-2 text-[11px] font-bold tracking-wide active:cursor-grabbing ${
                 isActive
                   ? "bg-teal-500/15 text-teal-300"
                   : "bg-slate-800/40 text-slate-400 hover:bg-slate-700/50 hover:text-slate-300"
@@ -75,7 +75,11 @@ export function SortableCard({
               {...attributes}
               {...listeners}
             >
-              {String(position + 1).padStart(2, "0")}
+              <span className="truncate">
+                {item.title?.trim()
+                  ? getDisplayTitle(item, 20)
+                  : String(position + 1).padStart(2, "0")}
+              </span>
             </button>
           </>
         ) : (

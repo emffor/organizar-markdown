@@ -27,7 +27,7 @@ interface AppShellProps {
 function ToolbarDivider() {
   return (
     <span
-      className="mx-0.5 hidden h-6 w-px bg-white/10 sm:inline-block"
+      className="mx-0.5 hidden h-4 w-px bg-white/10 sm:inline-block"
       aria-hidden="true"
     />
   );
@@ -64,23 +64,23 @@ export function AppShell({
       style={{ ["--font-scale" as string]: String(fontScale) }}
     >
       <header
-        className={`flex flex-col gap-3 border-b border-white/10 bg-ink text-white ${
+        className={`flex flex-col gap-1.5 border-b border-white/10 bg-ink text-white ${
           isCompactMode
-            ? "mb-2 rounded-none px-4 py-3 sm:px-5"
-            : "mb-3 rounded-[1.25rem] px-5 py-4 sm:px-6"
+            ? "mb-2 rounded-none px-4 py-2 sm:px-5"
+            : "mb-3 rounded-[1.25rem] px-5 py-3 sm:px-6"
         }`}
       >
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between">
           <div className={`${isPreviewMaximized ? "max-w-2xl" : "max-w-3xl"}`}>
-            <p className="mb-1 text-xs font-medium uppercase tracking-[0.28em] text-teal-200/90">
+            <p className="mb-0.5 text-[10px] font-medium uppercase tracking-[0.28em] text-teal-200/90">
               Organizar Markdown
             </p>
-            <h1 className="m-0 text-[2.2rem] font-semibold leading-[1.02] tracking-[-0.04em] text-slate-50 sm:text-[2.7rem] lg:text-[3.1rem]">
+            <h1 className="m-0 text-[1.25rem] font-semibold leading-tight tracking-[-0.03em] text-slate-50 sm:text-[1.5rem] lg:text-[1.65rem]">
               Cole blocos em markdown, reordene os cards e gere a versao final.
             </h1>
           </div>
 
-          <div className="flex max-w-[46rem] flex-wrap items-center justify-start gap-1.5 sm:justify-end">
+          <div className="flex max-w-[46rem] flex-wrap items-center justify-start gap-1 sm:justify-end">
             <button
               type="button"
               onClick={onTogglePreviewMaximized}
