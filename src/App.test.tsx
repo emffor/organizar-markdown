@@ -1,152 +1,185 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
-import App from './App';
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+import App from "./App";
 
-describe('App', () => {
-  it('adiciona um markdown e reflete o conteudo nas duas colunas', async () => {
+describe("App", () => {
+  it("adiciona um markdown e reflete o conteudo nas duas colunas", async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: /novo markdown/i }));
-    await user.type(screen.getByLabelText(/conteudo/i), '# Bloco A\n\nTexto do card');
-    await user.click(screen.getByRole('button', { name: /salvar card/i }));
-
-    expect(await screen.findByRole('button', { name: '# Bloco A' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Bloco A', level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('Texto do card')).toBeInTheDocument();
-  });
-
-  it('bloqueia o salvamento de conteudo vazio', async () => {
-    const user = userEvent.setup();
-    render(<App />);
-
-    await user.click(screen.getByRole('button', { name: /novo markdown/i }));
-    await user.click(screen.getByRole('button', { name: /salvar card/i }));
+    await user.click(screen.getByRole("button", { name: /novo markdown/i }));
+    await user.type(
+      screen.getByLabelText(/conteudo/i),
+      "# Bloco A\n\nTexto do card",
+    );
+    await user.click(screen.getByRole("button", { name: /salvar card/i }));
 
     expect(
-      await screen.findByText(/cole algum conteudo em markdown para continuar/i),
+      await screen.findByRole("button", { name: "Bloco A" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Bloco A", level: 1 }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Texto do card")).toBeInTheDocument();
+  });
+
+  it("bloqueia o salvamento de conteudo vazio", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: /novo markdown/i }));
+    await user.click(screen.getByRole("button", { name: /salvar card/i }));
+
+    expect(
+      await screen.findByText(
+        /cole algum conteudo em markdown para continuar/i,
+      ),
     ).toBeInTheDocument();
   });
 
-  it('mantem os cards apos remontar a aplicacao', async () => {
+  it("mantem os cards apos remontar a aplicacao", async () => {
     const user = userEvent.setup();
     const firstRender = render(<App />);
 
-    await user.click(screen.getByRole('button', { name: /novo markdown/i }));
-    await user.type(screen.getByLabelText(/conteudo/i), '## Persistido');
-    await user.click(screen.getByRole('button', { name: /salvar card/i }));
+    await user.click(screen.getByRole("button", { name: /novo markdown/i }));
+    await user.type(screen.getByLabelText(/conteudo/i), "## Persistido");
+    await user.click(screen.getByRole("button", { name: /salvar card/i }));
 
     expect(
-      await screen.findByRole('heading', { name: 'Persistido', level: 2 }),
+      await screen.findByRole("heading", { name: "Persistido", level: 2 }),
     ).toBeInTheDocument();
 
     firstRender.unmount();
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Persistido', level: 2 })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Persistido", level: 2 }),
+      ).toBeInTheDocument();
     });
   });
 
-  it('renderiza imagem quando o markdown contem sintaxe de imagem', async () => {
+  it("renderiza imagem quando o markdown contem sintaxe de imagem", async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: /novo markdown/i }));
+    await user.click(screen.getByRole("button", { name: /novo markdown/i }));
     fireEvent.change(screen.getByLabelText(/conteudo/i), {
       target: {
-        value: '## Figma\n\n![Tela](https://example.com/imagem.png)',
+        value: "## Figma\n\n![Tela](https://example.com/imagem.png)",
       },
     });
-    await user.click(screen.getByRole('button', { name: /salvar card/i }));
+    await user.click(screen.getByRole("button", { name: /salvar card/i }));
 
-    expect(await screen.findByRole('img', { name: 'Tela' })).toHaveAttribute(
-      'src',
-      'https://example.com/imagem.png',
+    expect(await screen.findByRole("img", { name: "Tela" })).toHaveAttribute(
+      "src",
+      "https://example.com/imagem.png",
     );
   });
 
-  it('alterna para o modo sem espacamentos', async () => {
+  it("alterna para o modo sem espacamentos", async () => {
     const user = userEvent.setup();
     render(<App />);
 
     const layout = document.querySelector('[data-layout-mode="default"]');
     expect(layout).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /usar tela inteira/i }));
+    await user.click(
+      screen.getByRole("button", { name: /usar tela inteira/i }),
+    );
 
-    expect(document.querySelector('[data-layout-mode="compact"]')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /restaurar espacamento/i })).toBeInTheDocument();
+    expect(
+      document.querySelector('[data-layout-mode="compact"]'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /restaurar espacamento/i }),
+    ).toBeInTheDocument();
   });
 
-  it('maximiza o preview escondendo a coluna esquerda', async () => {
+  it("maximiza o preview escondendo a coluna esquerda", async () => {
     const user = userEvent.setup();
     render(<App />);
 
     expect(screen.getByText(/cards em ordem/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /maximizar preview/i }));
+    await user.click(
+      screen.getByRole("button", { name: /maximizar preview/i }),
+    );
 
     expect(screen.queryByText(/cards em ordem/i)).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /restaurar colunas/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /restaurar colunas/i }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/preview renderizado/i)).toBeInTheDocument();
   });
 
-  it('alterna o tema pela toolbar', async () => {
+  it("alterna o tema pela toolbar", async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: /modo claro/i }));
+    await user.click(screen.getByRole("button", { name: /modo claro/i }));
 
-    expect(screen.getByRole('button', { name: /modo escuro/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /modo escuro/i }),
+    ).toBeInTheDocument();
     expect(document.querySelector('[data-theme="light"]')).toBeInTheDocument();
   });
 
-  it('persiste o ajuste de fonte na toolbar', async () => {
+  it("persiste o ajuste de fonte na toolbar", async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'A+' }));
+    await user.click(screen.getByRole("button", { name: "A+" }));
 
-    expect(window.localStorage.getItem('organizar-markdown:font-scale')).toBe('1.1');
+    expect(window.localStorage.getItem("organizar-markdown:font-scale")).toBe(
+      "1.1",
+    );
   });
 
-  it('edita um card pelo botao de lapis', async () => {
+  it("edita um card pelo botao de lapis", async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: /novo markdown/i }));
-    await user.type(screen.getByLabelText(/conteudo/i), '# Card original');
-    await user.click(screen.getByRole('button', { name: /salvar card/i }));
+    await user.click(screen.getByRole("button", { name: /novo markdown/i }));
+    await user.type(screen.getByLabelText(/conteudo/i), "# Card original");
+    await user.click(screen.getByRole("button", { name: /salvar card/i }));
 
-    await user.click(await screen.findByRole('button', { name: /editar # card original/i }));
+    await user.click(
+      await screen.findByRole("button", { name: /editar card original/i }),
+    );
 
     const textarea = screen.getByLabelText(/conteudo/i);
     await user.clear(textarea);
-    await user.type(textarea, '# Card editado');
-    await user.click(screen.getByRole('button', { name: /salvar alteracoes/i }));
+    await user.type(textarea, "# Card editado");
+    await user.click(
+      screen.getByRole("button", { name: /salvar alteracoes/i }),
+    );
 
-    expect(await screen.findByRole('heading', { name: 'Card editado', level: 1 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Card editado", level: 1 }),
+    ).toBeInTheDocument();
   });
 
-  it('alterna para modo indice e navega ate a secao do card', async () => {
+  it("alterna para modo indice e navega ate a secao do card", async () => {
     const user = userEvent.setup();
-    const scrollSpy = vi.spyOn(HTMLElement.prototype, 'scrollIntoView');
+    const scrollSpy = vi.spyOn(HTMLElement.prototype, "scrollIntoView");
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: /novo markdown/i }));
-    await user.type(screen.getByLabelText(/conteudo/i), '# Primeiro');
-    await user.click(screen.getByRole('button', { name: /salvar card/i }));
+    await user.click(screen.getByRole("button", { name: /novo markdown/i }));
+    await user.type(screen.getByLabelText(/conteudo/i), "# Primeiro");
+    await user.click(screen.getByRole("button", { name: /salvar card/i }));
 
-    await user.click(screen.getByRole('button', { name: /novo markdown/i }));
-    await user.type(screen.getByLabelText(/conteudo/i), '# Segundo');
-    await user.click(screen.getByRole('button', { name: /salvar card/i }));
+    await user.click(screen.getByRole("button", { name: /novo markdown/i }));
+    await user.type(screen.getByLabelText(/conteudo/i), "# Segundo");
+    await user.click(screen.getByRole("button", { name: /salvar card/i }));
 
-    await user.click(screen.getByRole('button', { name: /modo indice/i }));
-    await user.click(screen.getByRole('button', { name: /ir para # segundo/i }));
+    await user.click(screen.getByRole("button", { name: /modo indice/i }));
+    await user.click(screen.getByRole("button", { name: /ir para segundo/i }));
 
-    expect(screen.getByRole('button', { name: /restaurar cards/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /restaurar cards/i }),
+    ).toBeInTheDocument();
     expect(scrollSpy).toHaveBeenCalled();
   });
 });

@@ -9,6 +9,7 @@ export interface UseMarkdownBoardResult {
   isLoading: boolean;
   addItem: (content: string) => Promise<void>;
   updateItem: (itemId: string, content: string) => Promise<void>;
+  deleteItem: (itemId: string) => Promise<void>;
   reorderItems: (activeId: string, overId: string) => Promise<void>;
   clearItems: () => Promise<void>;
   replaceItems: (nextItems: MarkdownItem[]) => Promise<void>;
@@ -86,6 +87,21 @@ export function useMarkdownBoard(): UseMarkdownBoardResult {
     await db.items.put(updatedItem);
   };
 
+  const deleteItem = async (itemId: string) => {
+    const now = new Date().toISOString();
+    const remaining = items
+      .filter((item) => item.id !== itemId)
+      .map((item, index) => ({ ...item, order: index, updatedAt: now }));
+
+    setItems(remaining);
+    await db.transaction('rw', db.items, async () => {
+      await db.items.delete(itemId);
+      if (remaining.length > 0) {
+        await db.items.bulkPut(remaining);
+      }
+    });
+  };
+
   const reorderItems = async (activeId: string, overId: string) => {
     const reorderedItems = reorderMarkdownItems(items, activeId, overId);
 
@@ -120,6 +136,7 @@ export function useMarkdownBoard(): UseMarkdownBoardResult {
     isLoading,
     addItem,
     updateItem,
+    deleteItem,
     reorderItems,
     clearItems,
     replaceItems,

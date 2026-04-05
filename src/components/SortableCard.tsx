@@ -1,7 +1,7 @@
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { getCardTitle } from '../lib/items';
-import type { MarkdownItem } from '../types/markdown';
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { getCardTitle } from "../lib/items";
+import type { MarkdownItem } from "../types/markdown";
 
 interface SortableCardProps {
   item: MarkdownItem;
@@ -10,6 +10,7 @@ interface SortableCardProps {
   isActive?: boolean;
   onSelect: (item: MarkdownItem) => void;
   onEdit: (item: MarkdownItem) => void;
+  onDelete: (item: MarkdownItem) => void;
 }
 
 export function SortableCard({
@@ -19,8 +20,16 @@ export function SortableCard({
   isActive = false,
   onSelect,
   onEdit,
+  onDelete,
 }: SortableCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: item.id,
   });
 
@@ -33,34 +42,24 @@ export function SortableCard({
     <article
       ref={setNodeRef}
       style={style}
-      className={`border bg-white transition ${
+      className={`transition ${
         isOutlineMode
-          ? `rounded-2xl px-2 py-2 ${isActive ? 'border-teal-300 bg-teal-50/80 shadow-sm' : 'border-slate-200/80'}`
-          : `rounded-[1.1rem] px-4 py-3 ${
-              isDragging ? 'border-teal-300 bg-teal-50/40' : isActive ? 'border-teal-200 bg-teal-50/50' : 'border-slate-200/80'
+          ? `rounded-lg ${isActive ? "ring-1 ring-teal-400/60" : ""}`
+          : `rounded-[1.1rem] border px-4 py-3 ${
+              isDragging
+                ? "border-teal-300 bg-teal-50/40"
+                : isActive
+                  ? "border-teal-200 bg-teal-50/50"
+                  : "border-slate-200/80 bg-white"
             }`
       }`}
     >
-      <div className={`flex items-center ${isOutlineMode ? 'flex-col gap-2' : 'gap-3'}`}>
+      <div className={`flex items-center ${isOutlineMode ? "gap-1" : "gap-3"}`}>
         {isOutlineMode ? null : (
           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-            {String(position + 1).padStart(2, '0')}
+            {String(position + 1).padStart(2, "0")}
           </span>
         )}
-        <button
-          type="button"
-          onClick={() => onSelect(item)}
-          title={getCardTitle(item.content, 56)}
-          className={`cursor-grab text-slate-950 active:cursor-grabbing ${
-            isOutlineMode
-              ? 'hidden'
-              : 'min-w-0 flex-1 truncate text-left text-[1.15rem] font-semibold leading-6 tracking-[-0.02em]'
-          }`}
-          {...attributes}
-          {...listeners}
-        >
-          {getCardTitle(item.content, 56)}
-        </button>
         {isOutlineMode ? (
           <>
             <button
@@ -68,35 +67,48 @@ export function SortableCard({
               onClick={() => onSelect(item)}
               title={getCardTitle(item.content, 56)}
               aria-label={`Ir para ${getCardTitle(item.content, 56)}`}
-              className={`flex h-14 w-full cursor-grab items-center justify-center rounded-xl border px-1 text-center text-sm font-semibold tracking-[0.16em] active:cursor-grabbing ${
+              className={`flex h-10 w-full cursor-grab items-center justify-center rounded-lg text-xs font-bold tracking-wide active:cursor-grabbing ${
                 isActive
-                  ? 'border-teal-300 bg-teal-100 text-teal-900'
-                  : 'border-slate-200 bg-slate-50 text-slate-700'
+                  ? "bg-teal-500/15 text-teal-300"
+                  : "bg-slate-800/40 text-slate-400 hover:bg-slate-700/50 hover:text-slate-300"
               }`}
               {...attributes}
               {...listeners}
             >
-              {String(position + 1).padStart(2, '0')}
-            </button>
-            <button
-              type="button"
-              onClick={() => onEdit(item)}
-              aria-label={`Editar ${getCardTitle(item.content, 56)}`}
-              className="inline-flex h-7 w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
-            >
-              Editar
+              {String(position + 1).padStart(2, "0")}
             </button>
           </>
-        ) : null}
-        {isOutlineMode ? null : (
-          <button
-            type="button"
-            onClick={() => onEdit(item)}
-            aria-label={`Editar ${getCardTitle(item.content, 56)}`}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
-          >
-            <span aria-hidden="true">✎</span>
-          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => onSelect(item)}
+              title={getCardTitle(item.content, 56)}
+              className="min-w-0 flex-1 cursor-grab truncate text-left text-[1.15rem] font-semibold leading-6 tracking-[-0.02em] text-slate-950 active:cursor-grabbing"
+              {...attributes}
+              {...listeners}
+            >
+              {getCardTitle(item.content, 56)}
+            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => onEdit(item)}
+                aria-label={`Editar ${getCardTitle(item.content, 56)}`}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
+              >
+                <span aria-hidden="true">✎</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(item)}
+                aria-label={`Remover ${getCardTitle(item.content, 56)}`}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-rose-400 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+              >
+                <span aria-hidden="true">✕</span>
+              </button>
+            </div>
+          </>
         )}
       </div>
     </article>

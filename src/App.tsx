@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import { AppShell } from './components/AppShell';
-import { AddMarkdownModal } from './components/AddMarkdownModal';
-import { CombinedOutputPanel } from './components/CombinedOutputPanel';
-import { SortableCardsPanel } from './components/SortableCardsPanel';
-import { useMarkdownBoard } from './hooks/useMarkdownBoard';
-import { createBackupText, parseBackupText } from './lib/backup';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AppShell } from "./components/AppShell";
+import { AddMarkdownModal } from "./components/AddMarkdownModal";
+import { CombinedOutputPanel } from "./components/CombinedOutputPanel";
+import { SortableCardsPanel } from "./components/SortableCardsPanel";
+import { ToastContainer } from "./components/Toast";
+import { useMarkdownBoard } from "./hooks/useMarkdownBoard";
+import { useToast } from "./hooks/useToast";
+import { createBackupText, parseBackupText } from "./lib/backup";
+import { buildCombinedContent } from "./lib/items";
 import {
   type AppTheme,
   clampFontScale,
@@ -15,8 +18,8 @@ import {
   readStoredPreviewMaximized,
   readStoredTheme,
   STORAGE_KEYS,
-} from './lib/preferences';
-import type { MarkdownItem } from './types/markdown';
+} from "./lib/preferences";
+import type { MarkdownItem } from "./types/markdown";
 
 export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,21 +29,28 @@ export default function App() {
   const [isCompactMode, setIsCompactMode] = useState(readStoredCompactMode);
   const [isOutlineMode, setIsOutlineMode] = useState(readStoredOutlineMode);
   const [fontScale, setFontScale] = useState(readStoredFontScale);
-  const [isPreviewMaximized, setIsPreviewMaximized] = useState(readStoredPreviewMaximized);
+  const [isPreviewMaximized, setIsPreviewMaximized] = useState(
+    readStoredPreviewMaximized,
+  );
   const [theme, setTheme] = useState<AppTheme>(readStoredTheme);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const {
     items,
     addItem,
     updateItem,
+    deleteItem,
     reorderItems,
     clearItems,
     replaceItems,
     isLoading,
   } = useMarkdownBoard();
+  const { messages, addToast, dismissToast } = useToast();
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEYS.compactMode, String(isCompactMode));
+    window.localStorage.setItem(
+      STORAGE_KEYS.compactMode,
+      String(isCompactMode),
+    );
   }, [isCompactMode]);
 
   useEffect(() => {
@@ -48,11 +58,17 @@ export default function App() {
   }, [fontScale]);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEYS.outlineMode, String(isOutlineMode));
+    window.localStorage.setItem(
+      STORAGE_KEYS.outlineMode,
+      String(isOutlineMode),
+    );
   }, [isOutlineMode]);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEYS.previewMaximized, String(isPreviewMaximized));
+    window.localStorage.setItem(
+      STORAGE_KEYS.previewMaximized,
+      String(isPreviewMaximized),
+    );
   }, [isPreviewMaximized]);
 
   useEffect(() => {
@@ -76,8 +92,10 @@ export default function App() {
     try {
       if (editingItem) {
         await updateItem(editingItem.id, content);
+        addToast("Card atualizado com sucesso");
       } else {
         await addItem(content);
+        addToast("Novo card adicionado");
       }
     } finally {
       setIsSaving(false);
@@ -89,29 +107,33 @@ export default function App() {
       return;
     }
 
-    if (!window.confirm('Deseja remover todos os cards salvos?')) {
+    if (!window.confirm("Deseja remover todos os cards salvos?")) {
       return;
     }
 
     await clearItems();
+    addToast("Todos os cards foram removidos", "info");
   };
 
   const handleExport = () => {
     const backupText = createBackupText(items);
-    const blob = new Blob([backupText], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([backupText], { type: "text/plain;charset=utf-8" });
     const url = window.URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
+    const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = 'organizar-markdown-backup.txt';
+    anchor.download = "organizar-markdown-backup.txt";
     anchor.click();
     window.URL.revokeObjectURL(url);
+    addToast(`Backup exportado com ${items.length} card(s)`);
   };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFile = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
 
     if (!file) {
@@ -122,18 +144,52 @@ export default function App() {
       const rawText = await file.text();
       const importedItems = parseBackupText(rawText);
       await replaceItems(importedItems);
+      addToast(`${importedItems.length} card(s) importado(s) com sucesso`);
     } catch {
-      window.alert('Nao foi possivel importar este arquivo .txt.');
+      addToast("Nao foi possivel importar este arquivo.", "error");
     } finally {
-      event.target.value = '';
+      event.target.value = "";
     }
   };
+
+  const handleDeleteItem = async (item: MarkdownItem) => {
+    if (
+      !window.confirm(
+        `Remover card "${item.content.split("\n")[0]?.slice(0, 40)}..."?`,
+      )
+    ) {
+      return;
+    }
+    await deleteItem(item.id);
+    addToast("Card removido", "info");
+  };
+
+  const handleCopyAll = useCallback(async () => {
+    if (items.length === 0) {
+      addToast("Nenhum card para copiar", "error");
+      return;
+    }
+    const combined = buildCombinedContent(items);
+    await navigator.clipboard.writeText(combined);
+    addToast("Markdown copiado para a area de transferencia");
+  }, [items, addToast]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "n") {
+        event.preventDefault();
+        setIsModalOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const handleSelectItem = (item: MarkdownItem) => {
     setActiveItemId(item.id);
     document.getElementById(`preview-item-${item.id}`)?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
+      behavior: "smooth",
+      block: "start",
     });
   };
 
@@ -156,16 +212,27 @@ export default function App() {
         fontScale={fontScale}
         onOpenModal={() => setIsModalOpen(true)}
         onToggleCompactMode={() => setIsCompactMode((current) => !current)}
-        onTogglePreviewMaximized={() => setIsPreviewMaximized((current) => !current)}
+        onTogglePreviewMaximized={() =>
+          setIsPreviewMaximized((current) => !current)
+        }
         onToggleOutlineMode={() => setIsOutlineMode((current) => !current)}
-        onToggleTheme={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+        onToggleTheme={() =>
+          setTheme((current) => (current === "dark" ? "light" : "dark"))
+        }
         onClearAll={() => {
           void handleClearAll();
         }}
-        onDecreaseFont={() => setFontScale((current) => clampFontScale(current - FONT_SCALE.step))}
-        onIncreaseFont={() => setFontScale((current) => clampFontScale(current + FONT_SCALE.step))}
+        onDecreaseFont={() =>
+          setFontScale((current) => clampFontScale(current - FONT_SCALE.step))
+        }
+        onIncreaseFont={() =>
+          setFontScale((current) => clampFontScale(current + FONT_SCALE.step))
+        }
         onExport={handleExport}
         onImport={handleImportClick}
+        onCopyAll={() => {
+          void handleCopyAll();
+        }}
         leftPanel={
           <SortableCardsPanel
             items={items}
@@ -177,6 +244,9 @@ export default function App() {
             onEdit={(item) => {
               setEditingItem(item);
               setIsModalOpen(true);
+            }}
+            onDelete={(item) => {
+              void handleDeleteItem(item);
             }}
           />
         }
@@ -193,8 +263,9 @@ export default function App() {
       <AddMarkdownModal
         open={isModalOpen}
         isSaving={isSaving}
-        mode={editingItem ? 'edit' : 'create'}
-        initialValue={editingItem?.content ?? ''}
+        mode={editingItem ? "edit" : "create"}
+        initialValue={editingItem?.content ?? ""}
+        theme={theme}
         onClose={() => {
           if (!isSaving) {
             setIsModalOpen(false);
@@ -203,6 +274,8 @@ export default function App() {
         }}
         onSave={handleSave}
       />
+
+      <ToastContainer messages={messages} onDismiss={dismissToast} />
     </>
   );
 }

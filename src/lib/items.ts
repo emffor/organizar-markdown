@@ -5,6 +5,16 @@ export function buildCombinedContent(items: Pick<MarkdownItem, 'content'>[]): st
   return items.map((item) => item.content).join('\n\n');
 }
 
+function decodeHtmlEntities(text: string): string {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
+function stripMarkdownPrefix(line: string): string {
+  return line.replace(/^#+\s+/, '').replace(/^\[.*?\]\s*/, '');
+}
+
 export function getCardTitle(content: string, maxLength = 72): string {
   const firstLine = content
     .split('\n')
@@ -15,11 +25,14 @@ export function getCardTitle(content: string, maxLength = 72): string {
     return 'Sem titulo';
   }
 
-  if (firstLine.length <= maxLength) {
-    return firstLine;
+  const decoded = decodeHtmlEntities(firstLine);
+  const clean = stripMarkdownPrefix(decoded).trim() || decoded;
+
+  if (clean.length <= maxLength) {
+    return clean;
   }
 
-  return `${firstLine.slice(0, maxLength - 3)}...`;
+  return `${clean.slice(0, maxLength - 3)}...`;
 }
 
 export function reorderMarkdownItems(

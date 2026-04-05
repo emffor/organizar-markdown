@@ -1,11 +1,13 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { isContentBlank } from '../lib/items';
+import { useEffect, useState, type FormEvent } from "react";
+import { isContentBlank } from "../lib/items";
+import type { AppTheme } from "../lib/preferences";
 
 interface AddMarkdownModalProps {
   open: boolean;
   isSaving?: boolean;
-  mode?: 'create' | 'edit';
+  mode?: "create" | "edit";
   initialValue?: string;
+  theme?: AppTheme;
   onClose: () => void;
   onSave: (content: string) => Promise<void>;
 }
@@ -13,23 +15,25 @@ interface AddMarkdownModalProps {
 export function AddMarkdownModal({
   open,
   isSaving = false,
-  mode = 'create',
-  initialValue = '',
+  mode = "create",
+  initialValue = "",
+  theme = "dark",
   onClose,
   onSave,
 }: AddMarkdownModalProps) {
-  const [value, setValue] = useState('');
-  const [error, setError] = useState('');
+  const isDark = theme === "dark";
+  const [value, setValue] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!open) {
-      setValue('');
-      setError('');
+      setValue("");
+      setError("");
       return;
     }
 
     setValue(initialValue);
-    setError('');
+    setError("");
   }, [initialValue, open]);
 
   useEffect(() => {
@@ -38,13 +42,20 @@ export function AddMarkdownModal({
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        event.preventDefault();
+        const form = document.querySelector<HTMLFormElement>(
+          '[aria-labelledby="add-markdown-title"] form',
+        );
+        form?.requestSubmit();
       }
     };
 
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
   if (!open) {
@@ -55,7 +66,7 @@ export function AddMarkdownModal({
     event.preventDefault();
 
     if (isContentBlank(value)) {
-      setError('Cole algum conteudo em markdown para continuar.');
+      setError("Cole algum conteudo em markdown para continuar.");
       return;
     }
 
@@ -65,12 +76,16 @@ export function AddMarkdownModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-8 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8 backdrop-blur-sm"
       role="presentation"
       onClick={onClose}
     >
       <div
-        className="panel-surface w-full max-w-3xl p-5 sm:p-6"
+        className={`w-full max-w-3xl rounded-[1.75rem] border p-5 backdrop-blur sm:p-6 ${
+          isDark
+            ? "border-slate-700/60 bg-[#141b24]"
+            : "border-slate-200/80 bg-white/95"
+        }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-markdown-title"
@@ -79,24 +94,41 @@ export function AddMarkdownModal({
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="mb-1 text-sm font-medium uppercase tracking-[0.2em] text-teal-700">
-                {mode === 'edit' ? 'Editar card' : 'Novo card'}
+              <p
+                className={`mb-1 text-sm font-medium uppercase tracking-[0.2em] ${
+                  isDark ? "text-teal-300/90" : "text-teal-700"
+                }`}
+              >
+                {mode === "edit" ? "Editar card" : "Novo card"}
               </p>
-              <h2 id="add-markdown-title" className="m-0 text-2xl font-semibold text-slate-950">
-                {mode === 'edit' ? 'Editar markdown' : 'Colar markdown'}
+              <h2
+                id="add-markdown-title"
+                className={`m-0 text-2xl font-semibold ${
+                  isDark ? "text-slate-50" : "text-slate-950"
+                }`}
+              >
+                {mode === "edit" ? "Editar markdown" : "Colar markdown"}
               </h2>
             </div>
 
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+              className={`rounded-full border px-3 py-2 text-sm font-medium transition ${
+                isDark
+                  ? "border-slate-600 text-slate-400 hover:border-slate-500 hover:text-slate-200"
+                  : "border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900"
+              }`}
             >
               Fechar
             </button>
           </div>
 
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+          <label
+            className={`flex flex-col gap-2 text-sm font-medium ${
+              isDark ? "text-slate-300" : "text-slate-700"
+            }`}
+          >
             Conteudo
             <textarea
               autoFocus
@@ -104,32 +136,57 @@ export function AddMarkdownModal({
               onChange={(event) => {
                 setValue(event.target.value);
                 if (error) {
-                  setError('');
+                  setError("");
                 }
               }}
               rows={14}
-              placeholder={'# Titulo\n\nCole aqui o bloco em markdown.'}
-              className="min-h-[280px] rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 font-mono text-sm leading-6 text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+              placeholder={"# Titulo\n\nCole aqui o bloco em markdown."}
+              className={`min-h-[280px] rounded-2xl border px-4 py-4 font-mono text-sm leading-6 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200/40 ${
+                isDark
+                  ? "border-slate-700 bg-[#0b1118] text-slate-200 placeholder:text-slate-600"
+                  : "border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400"
+              }`}
             />
           </label>
 
-          {error ? <p className="m-0 text-sm font-medium text-rose-700">{error}</p> : null}
+          {error ? (
+            <p
+              className={`m-0 text-sm font-medium ${isDark ? "text-rose-400" : "text-rose-700"}`}
+            >
+              {error}
+            </p>
+          ) : null}
 
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+          <div className="flex items-center justify-between gap-3">
+            <p
+              className={`m-0 text-xs ${isDark ? "text-slate-500" : "text-slate-400"}`}
             >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="rounded-full bg-teal-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-teal-400"
-            >
-              {isSaving ? 'Salvando...' : mode === 'edit' ? 'Salvar alteracoes' : 'Salvar card'}
-            </button>
+              Ctrl+Enter para salvar
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className={`rounded-full border px-5 py-3 text-sm font-semibold transition ${
+                  isDark
+                    ? "border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100"
+                    : "border-slate-300 text-slate-700 hover:border-slate-400 hover:text-slate-950"
+                }`}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-teal-800 disabled:text-teal-300"
+              >
+                {isSaving
+                  ? "Salvando..."
+                  : mode === "edit"
+                    ? "Salvar alteracoes"
+                    : "Salvar card"}
+              </button>
+            </div>
           </div>
         </form>
       </div>

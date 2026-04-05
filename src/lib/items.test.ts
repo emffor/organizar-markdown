@@ -39,7 +39,7 @@ describe('items utilities', () => {
   });
 
   it('usa a primeira linha nao vazia como titulo do card', () => {
-    expect(getCardTitle('\n\n# Titulo principal\nTexto de apoio')).toBe('# Titulo principal');
+    expect(getCardTitle('\n\n# Titulo principal\nTexto de apoio')).toBe('Titulo principal');
     expect(getCardTitle('   \n   ')).toBe('Sem titulo');
   });
 });
