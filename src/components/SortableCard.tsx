@@ -1,6 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { getDisplayTitle } from "../lib/items";
+import type { AppTheme } from "../lib/preferences";
 import type { MarkdownItem } from "../types/markdown";
 
 interface SortableCardProps {
@@ -8,6 +9,7 @@ interface SortableCardProps {
   position: number;
   isOutlineMode?: boolean;
   isActive?: boolean;
+  theme?: AppTheme;
   onSelect: (item: MarkdownItem) => void;
   onEdit: (item: MarkdownItem) => void;
   onDelete: (item: MarkdownItem) => void;
@@ -18,6 +20,7 @@ export function SortableCard({
   position,
   isOutlineMode = false,
   isActive = false,
+  theme = "dark",
   onSelect,
   onEdit,
   onDelete,
@@ -38,17 +41,31 @@ export function SortableCard({
     transition,
   };
 
+  const outlineContainerClass =
+    theme === "dark"
+      ? isActive
+        ? "border-teal-400/60 bg-teal-400/10 shadow-[0_0_0_1px_rgba(45,212,191,0.12)]"
+        : "border-slate-800/90 bg-[#111823]"
+      : isActive
+        ? "border-teal-500/60 bg-teal-50 shadow-[0_0_0_1px_rgba(13,148,136,0.08)]"
+        : "border-slate-300 bg-white/95 shadow-sm";
+
+  const outlineButtonClass =
+    theme === "dark"
+      ? isActive
+        ? "border-teal-300/70 bg-teal-400/12 text-teal-200"
+        : "border-slate-700/80 bg-slate-900/40 text-slate-400 hover:border-slate-600 hover:bg-slate-800/70 hover:text-slate-200"
+      : isActive
+        ? "border-teal-400/70 bg-teal-100 text-teal-800"
+        : "border-slate-300 bg-slate-50 text-slate-600 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900";
+
   return (
     <article
       ref={setNodeRef}
       style={style}
       className={`transition ${
         isOutlineMode
-          ? `rounded-xl border ${
-              isActive
-                ? "border-teal-400/60 bg-teal-400/10 shadow-[0_0_0_1px_rgba(45,212,191,0.12)]"
-                : "border-slate-800/90 bg-[#111823]"
-            }`
+          ? `rounded-xl border ${outlineContainerClass}`
           : `rounded-[1.1rem] border px-4 py-3 ${
               isDragging
                 ? "border-teal-300 bg-teal-50/40"
@@ -71,11 +88,7 @@ export function SortableCard({
               onClick={() => onSelect(item)}
               title={getDisplayTitle(item, 56)}
               aria-label={`Ir para ${getDisplayTitle(item, 56)}`}
-              className={`flex h-12 w-full cursor-grab items-center justify-center rounded-[0.9rem] border px-2 text-[11px] font-bold tracking-[0.18em] transition active:cursor-grabbing ${
-                isActive
-                  ? "border-teal-300/70 bg-teal-400/12 text-teal-200"
-                  : "border-slate-700/80 bg-slate-900/40 text-slate-400 hover:border-slate-600 hover:bg-slate-800/70 hover:text-slate-200"
-              }`}
+              className={`flex h-12 w-full cursor-grab items-center justify-center rounded-[0.9rem] border px-2 text-[11px] font-bold tracking-[0.18em] transition active:cursor-grabbing ${outlineButtonClass}`}
               {...attributes}
               {...listeners}
             >

@@ -26,6 +26,7 @@ export default function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingItem, setEditingItem] = useState<MarkdownItem | null>(null);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const [isScrollSyncEnabled, setIsScrollSyncEnabled] = useState(false);
   const [isCompactMode, setIsCompactMode] = useState(readStoredCompactMode);
   const [isOutlineMode, setIsOutlineMode] = useState(readStoredOutlineMode);
   const [fontScale, setFontScale] = useState(readStoredFontScale);
@@ -34,6 +35,9 @@ export default function App() {
   );
   const [theme, setTheme] = useState<AppTheme>(readStoredTheme);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const leftScrollRef = useRef<HTMLDivElement | null>(null);
+  const rightScrollRef = useRef<HTMLDivElement | null>(null);
+  const syncSourceRef = useRef<"left" | "right" | null>(null);
   const {
     items,
     addItem,
@@ -86,6 +90,55 @@ export default function App() {
       setActiveItemId(items[0].id);
     }
   }, [activeItemId, items]);
+
+  useEffect(() => {
+    if (!isScrollSyncEnabled || isPreviewMaximized) {
+      syncSourceRef.current = null;
+      return;
+    }
+
+    const leftElement = leftScrollRef.current;
+    const rightElement = rightScrollRef.current;
+
+    if (!leftElement || !rightElement) {
+      return;
+    }
+
+    const syncScroll = (
+      source: HTMLDivElement,
+      target: HTMLDivElement,
+      sourceName: "left" | "right",
+    ) => {
+      if (syncSourceRef.current && syncSourceRef.current !== sourceName) {
+        return;
+      }
+
+      syncSourceRef.current = sourceName;
+
+      const maxSourceScroll = source.scrollHeight - source.clientHeight;
+      const maxTargetScroll = target.scrollHeight - target.clientHeight;
+      const ratio = maxSourceScroll > 0 ? source.scrollTop / maxSourceScroll : 0;
+      target.scrollTop = maxTargetScroll > 0 ? ratio * maxTargetScroll : 0;
+
+      window.requestAnimationFrame(() => {
+        syncSourceRef.current = null;
+      });
+    };
+
+    const handleLeftScroll = () => syncScroll(leftElement, rightElement, "left");
+    const handleRightScroll = () =>
+      syncScroll(rightElement, leftElement, "right");
+
+    leftElement.addEventListener("scroll", handleLeftScroll, { passive: true });
+    rightElement.addEventListener("scroll", handleRightScroll, {
+      passive: true,
+    });
+
+    return () => {
+      leftElement.removeEventListener("scroll", handleLeftScroll);
+      rightElement.removeEventListener("scroll", handleRightScroll);
+    };
+  }, [isPreviewMaximized, isScrollSyncEnabled, items.length, isOutlineMode]);
 
   const handleSave = async (content: string, title?: string) => {
     setIsSaving(true);
@@ -205,6 +258,7 @@ export default function App() {
         isCompactMode={isCompactMode}
         isPreviewMaximized={isPreviewMaximized}
         isOutlineMode={isOutlineMode}
+        isScrollSyncEnabled={isScrollSyncEnabled}
         theme={theme}
         fontScale={fontScale}
         onOpenModal={() => setIsModalOpen(true)}
@@ -213,6 +267,9 @@ export default function App() {
           setIsPreviewMaximized((current) => !current)
         }
         onToggleOutlineMode={() => setIsOutlineMode((current) => !current)}
+        onToggleScrollSync={() =>
+          setIsScrollSyncEnabled((current) => !current)
+        }
         onToggleTheme={() =>
           setTheme((current) => (current === "dark" ? "light" : "dark"))
         }
@@ -236,6 +293,8 @@ export default function App() {
             isLoading={isLoading}
             isOutlineMode={isOutlineMode}
             activeItemId={activeItemId}
+            scrollContainerRef={leftScrollRef}
+            theme={theme}
             onReorder={reorderItems}
             onSelect={handleSelectItem}
             onEdit={(item) => {
@@ -253,6 +312,7 @@ export default function App() {
             isLoading={isLoading}
             theme={theme}
             activeItemId={activeItemId}
+            scrollContainerRef={rightScrollRef}
           />
         }
       />

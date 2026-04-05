@@ -1,4 +1,5 @@
 import { getDisplayTitle } from "../lib/items";
+import { type RefObject } from "react";
 import type { MarkdownItem } from "../types/markdown";
 import type { AppTheme } from "../lib/preferences";
 import ReactMarkdown from "react-markdown";
@@ -10,6 +11,7 @@ interface CombinedOutputPanelProps {
   isLoading: boolean;
   theme: AppTheme;
   activeItemId?: string | null;
+  scrollContainerRef?: RefObject<HTMLDivElement>;
 }
 
 export function CombinedOutputPanel({
@@ -17,6 +19,7 @@ export function CombinedOutputPanel({
   isLoading,
   theme,
   activeItemId,
+  scrollContainerRef,
 }: CombinedOutputPanelProps) {
   return (
     <section
@@ -48,6 +51,7 @@ export function CombinedOutputPanel({
       </div>
 
       <div
+        ref={scrollContainerRef}
         className={`flex-1 overflow-y-auto p-5 sm:p-7 ${theme === "dark" ? "bg-[#0b1118]" : "bg-slate-50/80"}`}
       >
         {isLoading ? (

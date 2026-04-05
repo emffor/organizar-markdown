@@ -12,6 +12,8 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { type RefObject } from "react";
+import type { AppTheme } from "../lib/preferences";
 import type { MarkdownItem } from "../types/markdown";
 import { SortableCard } from "./SortableCard";
 
@@ -20,6 +22,8 @@ interface SortableCardsPanelProps {
   isLoading: boolean;
   isOutlineMode?: boolean;
   activeItemId?: string | null;
+  scrollContainerRef?: RefObject<HTMLDivElement>;
+  theme?: AppTheme;
   onReorder: (activeId: string, overId: string) => Promise<void>;
   onSelect: (item: MarkdownItem) => void;
   onEdit: (item: MarkdownItem) => void;
@@ -31,6 +35,8 @@ export function SortableCardsPanel({
   isLoading,
   isOutlineMode = false,
   activeItemId,
+  scrollContainerRef,
+  theme = "dark",
   onReorder,
   onSelect,
   onEdit,
@@ -118,6 +124,7 @@ export function SortableCardsPanel({
             strategy={verticalListSortingStrategy}
           >
             <div
+              ref={scrollContainerRef}
               className={`flex lg:flex-1 ${
                 isOutlineMode
                   ? "flex-col gap-1.5 overflow-y-auto"
@@ -131,6 +138,7 @@ export function SortableCardsPanel({
                   position={index}
                   isOutlineMode={isOutlineMode}
                   isActive={item.id === activeItemId}
+                  theme={theme}
                   onSelect={onSelect}
                   onEdit={onEdit}
                   onDelete={onDelete}

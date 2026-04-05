@@ -156,6 +156,17 @@ describe("App", () => {
     );
   });
 
+  it("alterna o botao de scroll sync na toolbar", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: /scroll sync/i }));
+
+    expect(
+      screen.getByRole("button", { name: /scroll sync ligado/i }),
+    ).toBeInTheDocument();
+  });
+
   it("edita um card pelo botao de lapis", async () => {
     const user = userEvent.setup();
     render(<App />);

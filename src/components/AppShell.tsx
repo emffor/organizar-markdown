@@ -7,12 +7,14 @@ interface AppShellProps {
   isCompactMode: boolean;
   isPreviewMaximized: boolean;
   isOutlineMode: boolean;
+  isScrollSyncEnabled: boolean;
   theme: AppTheme;
   fontScale: number;
   onOpenModal: () => void;
   onToggleCompactMode: () => void;
   onTogglePreviewMaximized: () => void;
   onToggleOutlineMode: () => void;
+  onToggleScrollSync: () => void;
   onToggleTheme: () => void;
   onClearAll: () => void;
   onDecreaseFont: () => void;
@@ -38,12 +40,14 @@ export function AppShell({
   isCompactMode,
   isPreviewMaximized,
   isOutlineMode,
+  isScrollSyncEnabled,
   theme,
   fontScale,
   onOpenModal,
   onToggleCompactMode,
   onTogglePreviewMaximized,
   onToggleOutlineMode,
+  onToggleScrollSync,
   onToggleTheme,
   onClearAll,
   onDecreaseFont,
@@ -101,6 +105,15 @@ export function AppShell({
               className="toolbar-button"
             >
               {isOutlineMode ? "Restaurar cards" : "Modo indice"}
+            </button>
+            <button
+              type="button"
+              onClick={onToggleScrollSync}
+              className={`toolbar-button ${
+                isScrollSyncEnabled ? "toolbar-button--primary" : ""
+              }`}
+            >
+              {isScrollSyncEnabled ? "Scroll sync ligado" : "Scroll sync"}
             </button>
             <button
               type="button"
