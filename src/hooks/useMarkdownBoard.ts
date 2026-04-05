@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { db } from '../lib/db';
-import { buildCombinedContent, isContentBlank, reorderMarkdownItems } from '../lib/items';
+import {
+  buildCombinedContent,
+  isContentBlank,
+  normalizeMarkdownContent,
+  reorderMarkdownItems,
+} from '../lib/items';
 import type { MarkdownItem } from '../types/markdown';
 
 export interface UseMarkdownBoardResult {
@@ -16,7 +21,30 @@ export interface UseMarkdownBoardResult {
 }
 
 async function loadItems(): Promise<MarkdownItem[]> {
-  return db.items.orderBy('order').toArray();
+  const storedItems = await db.items.orderBy('order').toArray();
+  let hasNormalizedItem = false;
+
+  const normalizedItems = storedItems.map((item) => {
+    const normalizedContent = normalizeMarkdownContent(item.content);
+
+    if (normalizedContent === item.content) {
+      return item;
+    }
+
+    hasNormalizedItem = true;
+
+    return {
+      ...item,
+      content: normalizedContent,
+      updatedAt: new Date().toISOString(),
+    };
+  });
+
+  if (hasNormalizedItem) {
+    await db.items.bulkPut(normalizedItems);
+  }
+
+  return normalizedItems;
 }
 
 export function useMarkdownBoard(): UseMarkdownBoardResult {
@@ -47,7 +75,9 @@ export function useMarkdownBoard(): UseMarkdownBoardResult {
   const combinedContent = useMemo(() => buildCombinedContent(items), [items]);
 
   const addItem = async (content: string, title?: string) => {
-    if (isContentBlank(content)) {
+    const normalizedContent = normalizeMarkdownContent(content);
+
+    if (isContentBlank(normalizedContent)) {
       return;
     }
 
@@ -56,7 +86,7 @@ export function useMarkdownBoard(): UseMarkdownBoardResult {
     const nextItem: MarkdownItem = {
       id: crypto.randomUUID(),
       title: cleanTitle,
-      content,
+      content: normalizedContent,
       order: items.length,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -67,7 +97,9 @@ export function useMarkdownBoard(): UseMarkdownBoardResult {
   };
 
   const updateItem = async (itemId: string, content: string, title?: string) => {
-    if (isContentBlank(content)) {
+    const normalizedContent = normalizeMarkdownContent(content);
+
+    if (isContentBlank(normalizedContent)) {
       return;
     }
 
@@ -81,7 +113,7 @@ export function useMarkdownBoard(): UseMarkdownBoardResult {
     const updatedItem: MarkdownItem = {
       ...currentItem,
       title: cleanTitle,
-      content,
+      content: normalizedContent,
       updatedAt: timestamp,
     };
 
@@ -125,11 +157,16 @@ export function useMarkdownBoard(): UseMarkdownBoardResult {
   };
 
   const replaceItems = async (nextItems: MarkdownItem[]) => {
-    setItems(nextItems);
+    const normalizedItems = nextItems.map((item) => ({
+      ...item,
+      content: normalizeMarkdownContent(item.content),
+    }));
+
+    setItems(normalizedItems);
     await db.transaction('rw', db.items, async () => {
       await db.items.clear();
-      if (nextItems.length > 0) {
-        await db.items.bulkPut(nextItems);
+      if (normalizedItems.length > 0) {
+        await db.items.bulkPut(normalizedItems);
       }
     });
   };

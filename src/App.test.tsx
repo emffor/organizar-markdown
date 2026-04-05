@@ -78,6 +78,24 @@ describe("App", () => {
     );
   });
 
+  it("normaliza caracteres corrompidos no inicio de itens de lista", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: /novo markdown/i }));
+    fireEvent.change(screen.getByLabelText(/conteudo/i), {
+      target: {
+        value: "## Regras\n\n�� O imovel selecionado deve pertencer ao cliente.",
+      },
+    });
+    await user.click(screen.getByRole("button", { name: /salvar card/i }));
+
+    expect(
+      await screen.findByText(/o imovel selecionado deve pertencer ao cliente/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("��")).not.toBeInTheDocument();
+  });
+
   it("alterna para o modo sem espacamentos", async () => {
     const user = userEvent.setup();
     render(<App />);

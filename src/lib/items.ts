@@ -5,6 +5,12 @@ export function buildCombinedContent(items: Pick<MarkdownItem, 'content'>[]): st
   return items.map((item) => item.content).join('\n\n');
 }
 
+export function normalizeMarkdownContent(content: string): string {
+  return content
+    .replace(/^\s*�+\s*/gm, '- ')
+    .replace(/\u00a0/g, ' ');
+}
+
 function decodeHtmlEntities(text: string): string {
   const textarea = document.createElement('textarea');
   textarea.innerHTML = text;

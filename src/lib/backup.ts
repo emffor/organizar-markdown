@@ -1,4 +1,5 @@
 import type { MarkdownItem } from '../types/markdown';
+import { normalizeMarkdownContent } from './items';
 
 interface MarkdownBackupFile {
   version: 1;
@@ -40,7 +41,7 @@ export function parseBackupText(rawText: string): MarkdownItem[] {
     return {
       id: item.id,
       title: typeof item.title === 'string' && item.title.trim() ? item.title.trim() : undefined,
-      content: item.content,
+      content: normalizeMarkdownContent(item.content),
       order: index,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
