@@ -146,8 +146,14 @@
 
   .markdown-preview h1 {
     border-bottom: 1px solid rgba(71, 85, 105, 0.24);
-    font-size: calc(3.2rem * var(--font-scale, 1));
+    font-size: clamp(
+      calc(2.2rem * var(--font-scale, 1)),
+      calc(1.45rem + 2.2vw),
+      calc(3.2rem * var(--font-scale, 1))
+    );
     letter-spacing: -0.04em;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
   }
