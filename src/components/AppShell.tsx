@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import type { AppTheme } from "../lib/preferences";
 
@@ -22,6 +22,7 @@ interface AppShellProps {
   onExport: () => void;
   onImport: () => void;
   onCopyAll: () => void;
+  isMac?: boolean;
   leftPanel: ReactNode;
   rightPanel: ReactNode;
 }
@@ -55,9 +56,12 @@ export function AppShell({
   onExport,
   onImport,
   onCopyAll,
+  isMac = false,
   leftPanel,
   rightPanel,
 }: AppShellProps) {
+  const [isToolbarExpanded, setIsToolbarExpanded] = useState(false);
+
   return (
     <main
       data-layout-mode={isCompactMode ? "compact" : "default"}
@@ -84,89 +88,14 @@ export function AppShell({
             </h1>
           </div>
 
-          <div className="flex max-w-[46rem] flex-wrap items-center justify-start gap-1 sm:justify-end">
-            <button
-              type="button"
-              onClick={onTogglePreviewMaximized}
-              className="toolbar-button toolbar-button--primary"
-            >
-              {isPreviewMaximized ? "Restaurar colunas" : "Maximizar preview"}
-            </button>
-            <button
-              type="button"
-              onClick={onToggleCompactMode}
-              className="toolbar-button"
-            >
-              {isCompactMode ? "Restaurar espacamento" : "Usar tela inteira"}
-            </button>
-            <button
-              type="button"
-              onClick={onToggleOutlineMode}
-              className="toolbar-button"
-            >
-              {isOutlineMode ? "Restaurar cards" : "Modo indice"}
-            </button>
-            <button
-              type="button"
-              onClick={onToggleScrollSync}
-              className={`toolbar-button ${
-                isScrollSyncEnabled ? "toolbar-button--primary" : ""
-              }`}
-            >
-              {isScrollSyncEnabled ? "Scroll sync ligado" : "Scroll sync"}
-            </button>
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              className="toolbar-button"
-            >
-              {theme === "dark" ? "Modo claro" : "Modo escuro"}
-            </button>
-
-            <ToolbarDivider />
-
-            <button
-              type="button"
-              onClick={onDecreaseFont}
-              className="toolbar-button toolbar-button--icon"
-              title="Diminuir fonte"
-            >
-              A-
-            </button>
-            <button
-              type="button"
-              onClick={onIncreaseFont}
-              className="toolbar-button toolbar-button--icon"
-              title="Aumentar fonte"
-            >
-              A+
-            </button>
-
-            <ToolbarDivider />
-
-            <button type="button" onClick={onImport} className="toolbar-button">
-              Importar .txt
-            </button>
-            <button type="button" onClick={onExport} className="toolbar-button">
-              Exportar .txt
-            </button>
+          <div className="flex items-center justify-start gap-1 sm:justify-end">
             <button
               type="button"
               onClick={onCopyAll}
               className="toolbar-button"
-              title="Copiar todo o markdown combinado"
+              title={`Copiar todo o markdown combinado (${isMac ? "⌘" : "Ctrl"}+Shift+C)`}
             >
               Copiar tudo
-            </button>
-
-            <ToolbarDivider />
-
-            <button
-              type="button"
-              onClick={onClearAll}
-              className="toolbar-button toolbar-button--danger"
-            >
-              Limpar tudo
             </button>
             <span className="toolbar-badge">
               {itemsCount} card{itemsCount === 1 ? "" : "s"}
@@ -175,11 +104,102 @@ export function AppShell({
               type="button"
               onClick={onOpenModal}
               className="toolbar-button toolbar-button--accent"
-              title="Ctrl+N"
+              title={isMac ? "⌘N" : "Ctrl+N"}
             >
               Novo markdown
             </button>
+            <button
+              type="button"
+              onClick={() => setIsToolbarExpanded((current) => !current)}
+              className="toolbar-button md:hidden"
+              aria-label={isToolbarExpanded ? "Fechar opcoes" : "Mais opcoes"}
+              aria-expanded={isToolbarExpanded}
+            >
+              {isToolbarExpanded ? "Fechar" : "Opcoes"}
+            </button>
           </div>
+        </div>
+
+        <div
+          className={`flex-wrap items-center gap-1 ${
+            isToolbarExpanded ? "flex" : "hidden md:flex"
+          }`}
+        >
+          <button
+            type="button"
+            onClick={onTogglePreviewMaximized}
+            className="toolbar-button toolbar-button--primary"
+          >
+            {isPreviewMaximized ? "Restaurar colunas" : "Maximizar preview"}
+          </button>
+          <button
+            type="button"
+            onClick={onToggleCompactMode}
+            className="toolbar-button"
+          >
+            {isCompactMode ? "Restaurar espacamento" : "Usar tela inteira"}
+          </button>
+          <button
+            type="button"
+            onClick={onToggleOutlineMode}
+            className="toolbar-button"
+          >
+            {isOutlineMode ? "Restaurar cards" : "Modo indice"}
+          </button>
+          <button
+            type="button"
+            onClick={onToggleScrollSync}
+            className={`toolbar-button ${
+              isScrollSyncEnabled ? "toolbar-button--primary" : ""
+            }`}
+          >
+            {isScrollSyncEnabled ? "Scroll sync ligado" : "Scroll sync"}
+          </button>
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            className="toolbar-button"
+          >
+            {theme === "dark" ? "Modo claro" : "Modo escuro"}
+          </button>
+
+          <ToolbarDivider />
+
+          <button
+            type="button"
+            onClick={onDecreaseFont}
+            className="toolbar-button toolbar-button--icon"
+            title="Diminuir fonte"
+          >
+            A-
+          </button>
+          <button
+            type="button"
+            onClick={onIncreaseFont}
+            className="toolbar-button toolbar-button--icon"
+            title="Aumentar fonte"
+          >
+            A+
+          </button>
+
+          <ToolbarDivider />
+
+          <button type="button" onClick={onImport} className="toolbar-button">
+            Importar .txt
+          </button>
+          <button type="button" onClick={onExport} className="toolbar-button">
+            Exportar .txt
+          </button>
+
+          <ToolbarDivider />
+
+          <button
+            type="button"
+            onClick={onClearAll}
+            className="toolbar-button toolbar-button--danger"
+          >
+            Limpar tudo
+          </button>
         </div>
       </header>
 

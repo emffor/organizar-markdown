@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppShell } from "./components/AppShell";
 import { AddMarkdownModal } from "./components/AddMarkdownModal";
+import { ConfirmModal } from "./components/ConfirmModal";
 import { CombinedOutputPanel } from "./components/CombinedOutputPanel";
 import { SortableCardsPanel } from "./components/SortableCardsPanel";
 import { ToastContainer } from "./components/Toast";
@@ -49,6 +50,8 @@ export default function App() {
     isLoading,
   } = useMarkdownBoard();
   const { messages, addToast, dismissToast } = useToast();
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
+  const [deletingItem, setDeletingItem] = useState<MarkdownItem | null>(null);
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -117,7 +120,8 @@ export default function App() {
 
       const maxSourceScroll = source.scrollHeight - source.clientHeight;
       const maxTargetScroll = target.scrollHeight - target.clientHeight;
-      const ratio = maxSourceScroll > 0 ? source.scrollTop / maxSourceScroll : 0;
+      const ratio =
+        maxSourceScroll > 0 ? source.scrollTop / maxSourceScroll : 0;
       target.scrollTop = maxTargetScroll > 0 ? ratio * maxTargetScroll : 0;
 
       window.requestAnimationFrame(() => {
@@ -125,7 +129,8 @@ export default function App() {
       });
     };
 
-    const handleLeftScroll = () => syncScroll(leftElement, rightElement, "left");
+    const handleLeftScroll = () =>
+      syncScroll(leftElement, rightElement, "left");
     const handleRightScroll = () =>
       syncScroll(rightElement, leftElement, "right");
 
@@ -156,17 +161,23 @@ export default function App() {
     }
   };
 
-  const handleClearAll = async () => {
+  const handleClearAll = () => {
     if (items.length === 0) {
       return;
     }
+    setConfirmClearAll(true);
+  };
 
-    if (!window.confirm("Deseja remover todos os cards salvos?")) {
-      return;
-    }
-
+  const executeClearAll = async () => {
+    setConfirmClearAll(false);
+    const snapshot = [...items];
     await clearItems();
-    addToast("Todos os cards foram removidos", "info");
+    addToast("Todos os cards foram removidos", "info", {
+      label: "Desfazer",
+      onClick: () => {
+        void replaceItems(snapshot);
+      },
+    });
   };
 
   const handleExport = () => {
@@ -206,11 +217,17 @@ export default function App() {
     }
   };
 
-  const handleDeleteItem = async (item: MarkdownItem) => {
-    if (!window.confirm(`Remover card "${getDisplayTitle(item, 40)}"?`)) {
+  const handleDeleteItem = (item: MarkdownItem) => {
+    setDeletingItem(item);
+  };
+
+  const executeDeleteItem = async () => {
+    if (!deletingItem) {
       return;
     }
-    await deleteItem(item.id);
+    const itemId = deletingItem.id;
+    setDeletingItem(null);
+    await deleteItem(itemId);
     addToast("Card removido", "info");
   };
 
@@ -219,21 +236,32 @@ export default function App() {
       addToast("Nenhum card para copiar", "error");
       return;
     }
-    const combined = buildCombinedContent(items);
-    await navigator.clipboard.writeText(combined);
-    addToast("Markdown copiado para a area de transferencia");
+    try {
+      const combined = buildCombinedContent(items);
+      await navigator.clipboard.writeText(combined);
+      addToast("Markdown copiado para a area de transferencia");
+    } catch {
+      addToast("Nao foi possivel copiar para a area de transferencia", "error");
+    }
   }, [items, addToast]);
+
+  const isMac = navigator.userAgent.includes("Mac");
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === "n") {
+      const mod = event.ctrlKey || event.metaKey;
+      if (mod && event.key === "n") {
         event.preventDefault();
         setIsModalOpen(true);
+      }
+      if (mod && event.shiftKey && event.key.toLowerCase() === "c") {
+        event.preventDefault();
+        void handleCopyAll();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [handleCopyAll]);
 
   const handleSelectItem = (item: MarkdownItem) => {
     setActiveItemId(item.id);
@@ -267,15 +295,11 @@ export default function App() {
           setIsPreviewMaximized((current) => !current)
         }
         onToggleOutlineMode={() => setIsOutlineMode((current) => !current)}
-        onToggleScrollSync={() =>
-          setIsScrollSyncEnabled((current) => !current)
-        }
+        onToggleScrollSync={() => setIsScrollSyncEnabled((current) => !current)}
         onToggleTheme={() =>
           setTheme((current) => (current === "dark" ? "light" : "dark"))
         }
-        onClearAll={() => {
-          void handleClearAll();
-        }}
+        onClearAll={handleClearAll}
         onDecreaseFont={() =>
           setFontScale((current) => clampFontScale(current - FONT_SCALE.step))
         }
@@ -287,6 +311,7 @@ export default function App() {
         onCopyAll={() => {
           void handleCopyAll();
         }}
+        isMac={isMac}
         leftPanel={
           <SortableCardsPanel
             items={items}
@@ -324,6 +349,7 @@ export default function App() {
         initialValue={editingItem?.content ?? ""}
         initialTitle={editingItem?.title ?? ""}
         theme={theme}
+        isMac={isMac}
         onClose={() => {
           if (!isSaving) {
             setIsModalOpen(false);
@@ -333,7 +359,39 @@ export default function App() {
         onSave={handleSave}
       />
 
-      <ToastContainer messages={messages} onDismiss={dismissToast} />
+      <ConfirmModal
+        open={confirmClearAll}
+        title="Remover todos os cards"
+        description="Deseja remover todos os cards salvos? Essa acao nao pode ser desfeita."
+        confirmLabel="Remover tudo"
+        cancelLabel="Cancelar"
+        variant="danger"
+        theme={theme}
+        onConfirm={() => {
+          void executeClearAll();
+        }}
+        onCancel={() => setConfirmClearAll(false)}
+      />
+
+      <ConfirmModal
+        open={deletingItem !== null}
+        title="Remover card"
+        description={`Deseja remover o card "${deletingItem ? getDisplayTitle(deletingItem, 40) : ""}"?`}
+        confirmLabel="Remover"
+        cancelLabel="Cancelar"
+        variant="danger"
+        theme={theme}
+        onConfirm={() => {
+          void executeDeleteItem();
+        }}
+        onCancel={() => setDeletingItem(null)}
+      />
+
+      <ToastContainer
+        messages={messages}
+        theme={theme}
+        onDismiss={dismissToast}
+      />
     </>
   );
 }

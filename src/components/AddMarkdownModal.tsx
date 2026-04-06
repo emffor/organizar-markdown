@@ -1,6 +1,14 @@
-import { useEffect, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 import { isContentBlank } from "../lib/items";
 import type { AppTheme } from "../lib/preferences";
+import { ConfirmModal } from "./ConfirmModal";
 
 interface AddMarkdownModalProps {
   open: boolean;
@@ -9,6 +17,7 @@ interface AddMarkdownModalProps {
   initialValue?: string;
   initialTitle?: string;
   theme?: AppTheme;
+  isMac?: boolean;
   onClose: () => void;
   onSave: (content: string, title?: string) => Promise<void>;
 }
@@ -20,19 +29,35 @@ export function AddMarkdownModal({
   initialValue = "",
   initialTitle = "",
   theme = "dark",
+  isMac = false,
   onClose,
   onSave,
 }: AddMarkdownModalProps) {
   const isDark = theme === "dark";
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [value, setValue] = useState("");
   const [title, setTitle] = useState("");
   const [error, setError] = useState("");
+  const [showDirtyConfirm, setShowDirtyConfirm] = useState(false);
+
+  useFocusTrap(dialogRef, open && !showDirtyConfirm);
+
+  const isDirty = open && (value !== initialValue || title !== initialTitle);
+
+  const safeClose = useCallback(() => {
+    if (isDirty) {
+      setShowDirtyConfirm(true);
+      return;
+    }
+    onClose();
+  }, [isDirty, onClose]);
 
   useEffect(() => {
     if (!open) {
       setValue("");
       setTitle("");
       setError("");
+      setShowDirtyConfirm(false);
       return;
     }
 
@@ -48,7 +73,7 @@ export function AddMarkdownModal({
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        onClose();
+        safeClose();
       }
       if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
         event.preventDefault();
@@ -61,7 +86,7 @@ export function AddMarkdownModal({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, safeClose]);
 
   if (!open) {
     return null;
@@ -83,9 +108,10 @@ export function AddMarkdownModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8 backdrop-blur-sm"
       role="presentation"
-      onClick={onClose}
+      onClick={safeClose}
     >
       <div
+        ref={dialogRef}
         className={`w-full max-w-3xl rounded-[1.75rem] border p-5 backdrop-blur sm:p-6 ${
           isDark
             ? "border-slate-700/60 bg-[#141b24]"
@@ -118,7 +144,7 @@ export function AddMarkdownModal({
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={safeClose}
               className={`rounded-full border px-3 py-2 text-sm font-medium transition ${
                 isDark
                   ? "border-slate-600 text-slate-400 hover:border-slate-500 hover:text-slate-200"
@@ -190,12 +216,12 @@ export function AddMarkdownModal({
             <p
               className={`m-0 text-xs ${isDark ? "text-slate-500" : "text-slate-400"}`}
             >
-              Ctrl+Enter para salvar
+              {isMac ? "⌘" : "Ctrl"}+Enter para salvar
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={safeClose}
                 className={`rounded-full border px-5 py-3 text-sm font-semibold transition ${
                   isDark
                     ? "border-slate-600 text-slate-300 hover:border-slate-500 hover:text-slate-100"
@@ -219,6 +245,21 @@ export function AddMarkdownModal({
           </div>
         </form>
       </div>
+
+      <ConfirmModal
+        open={showDirtyConfirm}
+        title="Descartar alteracoes?"
+        description="Voce tem alteracoes nao salvas. Deseja realmente fechar e perder o conteudo?"
+        confirmLabel="Descartar"
+        cancelLabel="Continuar editando"
+        variant="danger"
+        theme={theme}
+        onConfirm={() => {
+          setShowDirtyConfirm(false);
+          onClose();
+        }}
+        onCancel={() => setShowDirtyConfirm(false)}
+      />
     </div>
   );
 }

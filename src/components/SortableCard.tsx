@@ -39,6 +39,14 @@ export function SortableCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    ...(isDragging
+      ? {
+          zIndex: 50,
+          scale: "1.02",
+          opacity: 0.9,
+          boxShadow: "0 12px 28px rgba(0,0,0,0.25)",
+        }
+      : {}),
   };
 
   const outlineContainerClass =
@@ -63,21 +71,29 @@ export function SortableCard({
     <article
       ref={setNodeRef}
       style={style}
-      className={`transition ${
+      className={`transition-all duration-200 ${
         isOutlineMode
-          ? `rounded-xl border ${outlineContainerClass}`
+          ? `rounded-lg p-0.5 ${outlineContainerClass}`
           : `rounded-[1.1rem] border px-4 py-3 ${
               isDragging
-                ? "border-teal-300 bg-teal-50/40"
+                ? theme === "dark"
+                  ? "border-teal-400/50 bg-teal-400/10"
+                  : "border-teal-300 bg-teal-50/40"
                 : isActive
-                  ? "border-teal-200 bg-teal-50/50"
-                  : "border-slate-200/80 bg-white"
+                  ? theme === "dark"
+                    ? "border-teal-400/40 bg-teal-400/[0.06]"
+                    : "border-teal-200 bg-teal-50/50"
+                  : theme === "dark"
+                    ? "border-slate-700/70 bg-[#141b24]"
+                    : "border-slate-200/80 bg-white"
             }`
       }`}
     >
       <div className={`flex items-center ${isOutlineMode ? "gap-1" : "gap-3"}`}>
         {isOutlineMode ? null : (
-          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+          <span
+            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${theme === "dark" ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-500"}`}
+          >
             {String(position + 1).padStart(2, "0")}
           </span>
         )}
@@ -88,7 +104,7 @@ export function SortableCard({
               onClick={() => onSelect(item)}
               title={getDisplayTitle(item, 56)}
               aria-label={`Ir para ${getDisplayTitle(item, 56)}`}
-              className={`flex h-12 w-full cursor-grab items-center justify-center rounded-[0.9rem] border px-2 text-[11px] font-bold tracking-[0.18em] transition active:cursor-grabbing ${outlineButtonClass}`}
+              className={`flex h-11 w-full cursor-grab items-center justify-center rounded-md border px-2 text-[11px] font-bold tracking-[0.18em] transition active:cursor-grabbing ${outlineButtonClass}`}
               {...attributes}
               {...listeners}
             >
@@ -105,7 +121,7 @@ export function SortableCard({
               type="button"
               onClick={() => onSelect(item)}
               title={getDisplayTitle(item, 56)}
-              className="min-w-0 flex-1 cursor-grab truncate text-left text-[1.15rem] font-semibold leading-6 tracking-[-0.02em] text-slate-950 active:cursor-grabbing"
+              className={`min-w-0 flex-1 cursor-grab truncate text-left text-[1.15rem] font-semibold leading-6 tracking-[-0.02em] active:cursor-grabbing ${theme === "dark" ? "text-slate-100" : "text-slate-950"}`}
               {...attributes}
               {...listeners}
             >
@@ -116,7 +132,7 @@ export function SortableCard({
                 type="button"
                 onClick={() => onEdit(item)}
                 aria-label={`Editar ${getDisplayTitle(item, 56)}`}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-500 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${theme === "dark" ? "border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600 hover:bg-slate-700 hover:text-slate-200" : "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"}`}
               >
                 <span aria-hidden="true">✎</span>
               </button>
@@ -124,7 +140,7 @@ export function SortableCard({
                 type="button"
                 onClick={() => onDelete(item)}
                 aria-label={`Remover ${getDisplayTitle(item, 56)}`}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-rose-400 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${theme === "dark" ? "border-slate-700 bg-slate-800 text-rose-400 hover:border-rose-500/50 hover:bg-rose-500/10 hover:text-rose-300" : "border-slate-200 bg-slate-50 text-rose-400 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"}`}
               >
                 <span aria-hidden="true">✕</span>
               </button>
